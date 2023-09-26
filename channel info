@@ -1,0 +1,29 @@
+import requests
+import pandas as pd
+import time
+API_KEY="AIzaSyDOy3YaXcFHpa7dRUgJSPGCp3Vhi-KYhVI"
+CHANNEL_ID= input()
+def getvideodetails(video_id):
+    url2 = "https://www.googleapis.com/youtube/v3/videos?id="+video_id+"&part=statistics&key="+API_KEY
+    stats=requests.get(url2).json()
+    likes=stats['items'][0]['statistics']['likeCount']
+    viewed=stats['items'][0]['statistics']['viewCount']
+    comments=stats['items'][0]['statistics']['commentCount']
+    return likes, viewed, comments
+def getvideos(dataf):
+  pageToken=""
+  url="https://www.googleapis.com/youtube/v3/search?key="+API_KEY+"&channelId="+CHANNEL_ID+"&part=snippet,id&order=date&maxResults=100000"+pageToken
+  data=requests.get(url).json()
+  time.sleep(1)
+  for placeholder in data['items']:
+    if placeholder['id']['kind']=='youtube#video':
+      video_id=placeholder['id']['videoId']
+      video_title=placeholder['snippet']['title']
+      dated=placeholder['snippet']['publishTime']
+      desc=placeholder['snippet']['description']
+      likes, viewed, comments=getvideodetails(video_id)
+      dataf=dataf.append( {'VideoId':video_id,'Title':video_title,'Date':dated,'Description':desc,'Likes':likes,'Viewed':viewed, 'Comments':comments}, ignore_index=True)
+  return dataf
+dataf=pd.DataFrame(columns=['VideoId','Title', 'Date', 'Description', 'Likes', 'Viewed', 'Comments'])
+dataf=getvideos(dataf)
+dataf
